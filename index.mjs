@@ -110,6 +110,18 @@ export async function ask({ token, named, model, question, signal }) {
   return { status: 200, body: JSON.stringify(peel(parsed)) };
 }
 
+// accountFor is the account a key works in, and the key itself: the
+// account named in the sign-in's own answer (the prompt magpie asks and
+// keeps), else the one a key pasted as "<account id>:<token>" names, else
+// none — which asks the token for the account it can list.
+export function accountFor(auth) {
+  const raw = String(auth?.key ?? auth?.apiKey ?? "").trim();
+  const named = String(auth?.metadata?.accountId ?? "").trim();
+  const cut = raw.indexOf(":");
+  if (named) return { token: cut > 0 ? raw.slice(cut + 1).trim() : raw, named };
+  return { token: cut > 0 ? raw.slice(cut + 1).trim() : raw, named: cut > 0 ? raw.slice(0, cut).trim() : "" };
+}
+
 export async function CfJevPlugin() {
   return {
     config: async (cfg) => {
@@ -133,17 +145,27 @@ export async function CfJevPlugin() {
         {
           type: "api",
           label: "Cloudflare API token (Workers AI)",
-          placeholder: "token, or <account id>:<token>",
+          placeholder: "token",
+          // the account the token works in, asked on its own: a token made
+          // for Workers AI alone cannot list the accounts, and the run
+          // needs the account's id. Left empty, the token is asked for it.
+          prompts: [
+            {
+              type: "text",
+              key: "accountId",
+              message: "Your Cloudflare account ID (the 32 hex digits in the dashboard; empty if the token can list accounts)",
+              placeholder: "f14d88531a144167d91b1be6fb789b3f",
+              validate: (v) => {
+                const s = String(v ?? "").trim();
+                if (!s || /^[0-9a-f]{32}$/i.test(s)) return undefined;
+                return "An account ID is 32 hexadecimal digits (or empty)";
+              },
+            },
+          ],
         },
       ],
       async loader(getAuth) {
-        const auth = (await getAuth()) ?? {};
-        const raw = String(auth.key ?? auth.apiKey ?? "").trim();
-        // a key pasted as "<account id>:<token>" names the account itself,
-        // which a token made for Workers AI alone can't be asked for
-        const cut = raw.indexOf(":");
-        const named = cut > 0 ? raw.slice(0, cut).trim() : "";
-        const token = cut > 0 ? raw.slice(cut + 1).trim() : raw;
+        const { token, named } = accountFor((await getAuth()) ?? {});
         return {
           apiKey: token,
           // where magpie thinks the provider's requests go: this fetch is

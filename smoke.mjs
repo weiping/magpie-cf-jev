@@ -3,7 +3,7 @@
 // Run: node smoke.mjs   (the token comes from magpie's own providers.json)
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { CfJevPlugin } from "./index.mjs";
+import { CfJevPlugin, accountFor } from "./index.mjs";
 
 const providers = JSON.parse(readFileSync(`${homedir()}/.config/magpie/providers.json`, "utf8"));
 const cf = (providers.providers ?? providers)?.find?.((p) => p.id === "cloudflare-jev");
@@ -14,6 +14,8 @@ if (!account) throw new Error("no account id in the provider's decide address");
 const plugin = await CfJevPlugin({});
 const auth = plugin.auth;
 const options = await auth.loader(async () => ({ type: "api", key: `${account}:${cf.key}` }));
+// the sign-in's own answer names the account too, as it does in magpie
+console.log("account from the sign-in:", accountFor({ key: cf.key, metadata: { accountId: account } }).named);
 
 const question = {
   model: "typesafe/jev",

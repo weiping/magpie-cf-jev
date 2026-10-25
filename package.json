@@ -1,13 +1,15 @@
 {
   "name": "@weiping/magpie-cf-jev",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Cloudflare Workers AI (Jev and Clef) as a magpie decision provider, with the answers read out of Cloudflare's envelope",
   "type": "module",
   "main": "./index.mjs",
   "exports": "./index.mjs",
   "files": [
     "index.mjs",
-    "README.md"
+    "README.md",
+    "peel.test.mjs",
+    "account.test.mjs"
   ],
   "keywords": [
     "magpie",
@@ -30,6 +32,6 @@
     "access": "public"
   },
   "scripts": {
-    "test": "node --test peel.test.mjs"
+    "test": "node --test peel.test.mjs account.test.mjs"
   }
 }

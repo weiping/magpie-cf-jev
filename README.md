@@ -39,8 +39,9 @@ magpie 的插件可以声明自己是决策供应商：`config` 钩子里 `decid
 # 1. 装插件（npm 上发布的是 @weiping/magpie-cf-jev）
 magpie plugin add @weiping/magpie-cf-jev@latest
 
-# 2. 登录，粘贴 Cloudflare API token
-#    只做 Workers AI 的 token 可能列不出账号，那就按 "<account id>:<token>" 粘
+# 2. 登录：先问 Account ID，再粘 Cloudflare API token
+#    Account ID 是控制台里那 32 位十六进制；留空也行
+#    （token 若能列账号，插件会自己去查）
 magpie plugin login cf-jev
 
 # 3. 确认三个决策模型都在，且 decide 探针通过
@@ -54,6 +55,18 @@ magpie group set mb-classifier \
 ```
 
 > `magpie group mb-classifier` 对决策组总是显示 `not served now, skipped` / `no member ready` —— 那是 magpie CLI 的显示假象（它拿「给 agent 的模型目录」查成员，而决策模型本来就不在里面），不代表插件不能用。真要看可用性：`magpie provider test cf-jev` 或直接发一个 `/v1/systemone`。
+
+### Account ID 从哪来
+
+Worker AI 的运行地址是 `…/accounts/<account id>/ai/run`，account id 是 Cloudflare 控制台
+里那 32 位十六进制。插件登录时会**单独问一次**（magpie 的插件提问机制，答案存进该账户
+的 metadata）：
+
+- token 有列账号的权限 → Account ID 留空，插件用 token 查第一个账号；
+- token 只给 Workers AI（列不了账号）→ 必须填，否则跑不起来。
+
+也仍然支持把两者粘在一起：登录时用 `<account id>:<token>` 的写法（0.1.1 就是这么登的，
+登录信息还在就一直有效）。两种写法都以登录时回答的 Account ID 为准。
 
 ## 回滚
 
@@ -76,13 +89,14 @@ magpie plugin rm cf-jev          # 或 magpie plugin off cf-jev
 
 | 文件 | 作用 |
 | --- | --- |
-| `index.mjs` | 插件本体：`config` 声明决策供应商，`auth.loader` 返回自带 `fetch` 的实现，`peel()` 拆信封 |
+| `index.mjs` | 插件本体：`config` 声明决策供应商，`auth` 的登录方法带 Account ID 提问，`loader` 返回自带 `fetch` 的实现，`peel()` 拆信封，`accountFor()` 解析账号 |
 | `smoke.mjs` | 不经 magpie、直接按 host 的方式调 `fetch` 的自检（token 从 magpie 的 `providers.json` 读，不落盘） |
 | `peel.test.mjs` | `peel()` 的单元测试：两层信封、一层信封、错误体、已经扁平的答案 |
+| `account.test.mjs` | `accountFor()` 的单元测试：登录回答的 ID、key 里的 `<id>:<token>`、两者冲突、空值 |
 
 ```sh
-node --test peel.test.mjs     # 单元测试
-node smoke.mjs                # 打真实 Cloudflare
+node --test peel.test.mjs account.test.mjs   # 单元测试
+node smoke.mjs                              # 打真实 Cloudflare
 ```
 
 ## 发布
