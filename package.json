@@ -1,11 +1,28 @@
 {
-  "name": "magpie-cf-jev",
+  "name": "@weiping/magpie-cf-jev",
   "version": "0.1.0",
   "description": "Cloudflare Workers AI (Jev and Clef) as a magpie decision provider, with the answers read out of Cloudflare's envelope",
   "type": "module",
   "main": "./index.mjs",
   "exports": "./index.mjs",
   "files": ["index.mjs", "README.md"],
-  "keywords": ["magpie", "opencode-plugin", "cloudflare", "workers-ai", "jev", "clef", "system-one"],
-  "license": "MIT"
+  "keywords": [
+    "magpie",
+    "magpie-plugin",
+    "opencode",
+    "opencode-plugin",
+    "cloudflare",
+    "workers-ai",
+    "jev",
+    "clef",
+    "system-one"
+  ],
+  "author": "weiping",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "node --test peel.test.mjs"
+  }
 }

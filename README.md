@@ -36,8 +36,8 @@ magpie 的插件可以声明自己是决策供应商：`config` 钩子里 `decid
 ## 用法
 
 ```sh
-# 1. 装插件（本地目录，不走 npm）
-magpie plugin add ~/workspace/dev/cf-jev-plugin
+# 1. 装插件（npm 上发布的是 @weiping/magpie-cf-jev）
+magpie plugin add @weiping/magpie-cf-jev@latest
 
 # 2. 登录，粘贴 Cloudflare API token
 #    只做 Workers AI 的 token 可能列不出账号，那就按 "<account id>:<token>" 粘
@@ -84,3 +84,13 @@ magpie plugin rm cf-jev          # 或 magpie plugin off cf-jev
 node --test peel.test.mjs     # 单元测试
 node smoke.mjs                # 打真实 Cloudflare
 ```
+
+## 发布
+
+```sh
+npm version patch && npm publish          # @weiping/magpie-cf-jev
+magpie plugin add @weiping/magpie-cf-jev@latest
+```
+
+本地目录也能直接用（开发时）：`magpie plugin add ./`——但同一个 provider id 两个插件都装时，
+magpie 只会让一个服务它，装完 npm 版后把目录版 `magpie plugin rm <目录>` 去掉。
