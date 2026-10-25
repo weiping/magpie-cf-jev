@@ -19,6 +19,10 @@
   ],
   "author": "weiping",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weiping/magpie-cf-jev.git"
+  },
   "publishConfig": {
     "access": "public"
   },
